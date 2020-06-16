@@ -23,7 +23,7 @@ import java.util.concurrent.ThreadLocalRandom
 
 import com.google.datastore.v1.Entity
 import com.spotify.scio.ScioContext
-import com.spotify.scio.coders.{AvroBytesUtil, Coder, CoderMaterializer}
+import com.spotify.scio.coders.{AvroBytesUtil, Coder, CoderMaterializer, WrappedBCoder}
 import com.spotify.scio.io._
 import com.spotify.scio.schemas.{Schema, SchemaMaterializer, To}
 import com.spotify.scio.testing.TestDataManager
@@ -134,8 +134,10 @@ sealed trait SCollection[T] extends PCollectionWrapper[T] {
   def name: String = internal.getName
 
   /** Assign a Coder to this SCollection. */
-  def setCoder(coder: org.apache.beam.sdk.coders.Coder[T]): SCollection[T] =
-    context.wrap(internal.setCoder(coder))
+  def setCoder(coder: org.apache.beam.sdk.coders.Coder[T]): SCollection[T] = coder match {
+    case wc: WrappedBCoder[T] => context.wrap(internal.setCoder(wc.u))
+    case _ => context.wrap(internal.setCoder(coder))
+  }
 
   def setSchema(schema: Schema[T])(implicit ct: ClassTag[T]): SCollection[T] =
     if (!internal.hasSchema) {
