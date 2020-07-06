@@ -166,7 +166,7 @@ object SortMergeBucketTransformExample {
         .from(args("rhsInput"))
     ).to(
       AvroSortedBucketIO
-        .write(classOf[Integer], "userId", classOf[Account])
+        .write(classOf[Integer], "id", classOf[Account])
         .to(args("output"))
         .withNumBuckets(2)
         .withNumShards(1)
